@@ -1,17 +1,17 @@
 info:
-  name: {{info.name}}
-  description: {{info.description}}
-  slug: {{info.slug}}
-  developer_cli: {{info.developer_cli}}
-  db_name: {{info.db_name}}
-  base_port: {{info.base_port}}
+  name: Velocity Chain
+  description: AI-powered supply chain optimization platform that provides real-time visibility, predictive analytics, and intelligent automation to maximize efficiency and minimize costs across global supply networks.
+  slug: flux
+  developer_cli: fx
+  db_name: velocity_chain
+  base_port: 8383
 
 organization:
-  name: {{org.name}}
-  email: {{org.email}}
-  founded: {{org.founded}}
-  slug: {{org.slug}}
-  git_host: {{org.git_host}}
-  git_org: {{org.git_org}}
-  docker_host: {{org.docker_host}}
-  docker_org: {{org.docker_org}}
+  name: Velocity Chain
+  email: grahampaasch@gmail.com
+  founded: 2024
+  slug: velocity-chain
+  git_host: https://github.com
+  git_org: velocity-chain
+  docker_host: ghcr.io
+  docker_org: velocity-chain

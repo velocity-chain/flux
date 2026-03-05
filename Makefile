@@ -1,73 +1,253 @@
-.PHONY: help test clean merge diff take
+# --- Configuration (Makefile dir == pwd; SOURCE = parent; SLUG/ORG from product.yaml) ---
+MAKEFILE_DIR := .
+SOURCE := $(shell cd .. && pwd)
+ARCH_FILE ?= $(MAKEFILE_DIR)/Specifications/architecture.yaml
+PRODUCT_FILE ?= $(MAKEFILE_DIR)/Specifications/product.yaml
+SLUG := $(shell yq -r '.info.slug' $(PRODUCT_FILE))
+ORG := $(shell yq -r '.organization.git_org' $(PRODUCT_FILE))
+LOG_FILE ?= .make.log
+SPECS_DIR := $(CURDIR)/Specifications
+MERGE_IMAGE := ghcr.io/agile-learning-institute/stage0_runbook_merge:latest
+ALL_SERVICES := $(shell yq -r '.architecture.domains[].name' $(ARCH_FILE))
+
+.PHONY: help install update verify schemas container push build-package publish-package 
+.PHONY: clean-clone-build launch-all launch-services delete-all delete-services
 
 help:
-	@echo "  make test             - Run tests using ~/temp folder"
-	@echo "  make clean            - Clean up temporary test files"
-	@echo "  make merge <specs_path>  - Merge templates (repo is .); e.g. make merge ../Specifications"
-	@echo "  make diff <filespec>  - Diff temp vs expected for a single file"
-	@echo "  make take <filespec>  - Overwrite expected file with temp file"
+	@echo "Velocity Chain Developer CLI - Available commands:"
+	@echo ""
+	@echo "  make install        - Install flux CLI tools to ~/.flux"
+	@echo "  make verify        - Verify build tools and prerequisites"
+	@echo "  make update        - Update flux CLI tools and configure Docker/Git"
+	@echo "  make schemas       - Fetch JSON schemas for all data dictionaries, assumes mongodb_api is running"
+	@echo "  make build-package - Build the Velocity Chain welcome page Docker container locally"
+	@echo ""
+	@echo "  make launch-all    - Build umbrella, publish, launch all services (create/clone/merge/build/publish)"
+	@echo "  make launch-services SERVICES=\"schema common_code\" - Launch services (space-separated)"
+	@echo "  make clean-clone-build SERVICES=<list> - Clean, clone, build (no publish)"
+	@echo "  make delete-all    - Delete all services (packages + repos)"
+	@echo "  make delete-services SERVICES=<list> - Delete services for given domains"
+	@echo ""
+	@echo "For more information, see ./CONTRIBUTING.md"
 
-test:
-	@TEMP_REPO="$$HOME/tmp/testRepo"; \
-	echo "Setting up temporary testing folder at $$TEMP_REPO..."; \
-	rm -rf "$$TEMP_REPO"; \
-	mkdir -p "$$TEMP_REPO"; \
-	cp -r . "$$TEMP_REPO"
-	@echo "Debug: Checking specifications structure..."; \
-	find .stage0_template/Specifications -name "*.yaml" | head -10
-	@echo "Running the container..."; \
-	LOG_LEVEL="$${LOG_LEVEL:-DEBUG}"; \
-	docker run --rm \
-		-v "$$HOME/tmp/testRepo:/repo" \
-		-v "$$(pwd)/.stage0_template/specifications:/specifications" \
-		-e LOG_LEVEL="$$LOG_LEVEL" \
-		ghcr.io/agile-learning-institute/stage0_runbook_merge:latest
-	@echo "Checking output..."; \
-	diff -qr "$$(pwd)/.stage0_template/test_expected/" "$$HOME/tmp/testRepo/" || true
-	@echo "Done."
-
-clean:
-	@echo "Removing temporary test repo at $$HOME/tmp/testRepo..."; \
-	rm -rf "$$HOME/tmp/testRepo"
-
-merge:
-	@SPECS_PATH="$(firstword $(filter-out $@,$(MAKECMDGOALS)))"; \
-	if [ -z "$$SPECS_PATH" ]; then \
-		echo "Usage: make merge <specs_path>"; \
-		echo "  e.g. make merge ../Specifications"; \
+verify:
+	@fail=0; \
+	echo "=== Verifying installed tools ==="; \
+	echo ""; \
+	echo "--- Build tools ---"; \
+	command -v make >/dev/null 2>&1 && printf "make:    " && make --version | head -1 || { echo "  FAIL: make"; fail=1; }; \
+	command -v node >/dev/null 2>&1 && printf "node:    " && node --version || { echo "  FAIL: node"; fail=1; }; \
+	command -v npm >/dev/null 2>&1 && printf "npm:     " && npm --version || { echo "  FAIL: npm"; fail=1; }; \
+    (vite --version 2>/dev/null || npx vite --version 2>/dev/null) >/dev/null && printf "vite:    " && (vite --version 2>/dev/null || npx vite --version 2>/dev/null) || { echo "  FAIL: vite"; fail=1; }; \
+	echo ""; \
+	echo "--- Python tools ---"; \
+	command -v python3 >/dev/null 2>&1 && printf "python3: " && python3 --version || { echo "  FAIL: python3"; fail=1; }; \
+	command -v pipenv >/dev/null 2>&1 && printf "pipenv:  " && pipenv --version || { echo "  FAIL: pipenv"; fail=1; }; \
+	echo ""; \
+	echo "--- Container tools ---"; \
+	command -v docker >/dev/null 2>&1 && printf "docker:  " && docker --version || { echo "  FAIL: docker"; fail=1; }; \
+	docker buildx version >/dev/null 2>&1 && printf "buildx:  " && docker buildx version || { echo "  FAIL: docker buildx"; fail=1; }; \
+	echo ""; \
+	echo "--- GitHub & Git ---"; \
+	[ -n "$${GITHUB_TOKEN:-}" ] && printf "GITHUB_TOKEN: set\n" || { echo "  FAIL: GITHUB_TOKEN (set env var)"; fail=1; }; \
+	command -v gh >/dev/null 2>&1 && printf "gh:      " && gh --version | head -1 || { echo "  FAIL: gh"; fail=1; }; \
+	command -v git >/dev/null 2>&1 && printf "git:     " && git --version || { echo "  FAIL: git"; fail=1; }; \
+	echo ""; \
+	echo "--- Utilities ---"; \
+	command -v jq >/dev/null 2>&1 && printf "jq:      " && jq --version || { echo "  FAIL: jq"; fail=1; }; \
+	command -v yq >/dev/null 2>&1 && printf "yq:      " && yq --version || { echo "  FAIL: yq"; fail=1; }; \
+	command -v curl >/dev/null 2>&1 && printf "curl:    " && curl --version | head -1 || { echo "  FAIL: curl"; fail=1; }; \
+	command -v ssh >/dev/null 2>&1 && printf "ssh:     " && ssh -V 2>&1 || { echo "  FAIL: ssh"; fail=1; }; \
+	echo ""; \
+	if [ $$fail -eq 1 ]; then \
+		echo "Some prerequisites are missing. See CONTRIBUTING.md for install instructions."; \
 		exit 1; \
 	fi; \
-	echo "Running merge: repo=. specs=$$SPECS_PATH"; \
-	LOG_LEVEL="$${LOG_LEVEL:-INFO}"; \
-	docker run --rm \
-		-v ".:/repo" \
-		-v "$$SPECS_PATH:/specifications" \
-		-e LOG_LEVEL="$$LOG_LEVEL" \
-		ghcr.io/agile-learning-institute/stage0_runbook_merge:latest
+	echo "=== All prerequisites verified ==="
 
-diff:
-	@FILESPEC="$(firstword $(filter-out diff,$(MAKECMDGOALS)))"; \
-	if [ -z "$$FILESPEC" ]; then \
-		echo "Usage: make diff <filespec>  (e.g. make diff DeveloperEdition/mh)"; \
+install:
+	@echo "Installing flux CLI..."
+	@mkdir -p ~/.flux
+	@if ! grep -q "Added by flux CLI install" ~/.zshrc 2>/dev/null; then \
+		echo "\n# Added by flux CLI install" >> ~/.zshrc; \
+		echo "export PATH=\$$PATH:~/.flux" >> ~/.zshrc; \
+		echo "export GITHUB_TOKEN=\$$(cat ~/.flux/GITHUB_TOKEN)" >> ~/.zshrc; \
+		echo "Added ~/.flux to PATH in ~/.zshrc"; \
+	else \
+		echo "~/.flux already in PATH"; \
+	fi
+	@echo "Installation complete. Run 'source ~/.zshrc' or restart your terminal."
+
+uninstall:
+	@echo "Uninstalling flux CLI..."
+	@if [ -f ~/.zshrc ]; then \
+		grep -v -e 'Added by flux CLI install' \
+			-e 'export PATH=.*~/.flux' \
+			-e 'export GITHUB_TOKEN=.*flux/GITHUB_TOKEN' \
+			~/.zshrc > ~/.zshrc.tmp && mv ~/.zshrc.tmp ~/.zshrc && \
+		echo "Removed flux lines from ~/.zshrc"; \
+	else \
+		echo "~/.zshrc not found, skipping"; \
+	fi
+	@rm -rf ~/.flux && echo "Removed ~/.flux"
+	@echo "Uninstall complete. Run 'source ~/.zshrc' or restart your terminal."
+
+update: verify
+	@echo "Updating flux CLI..."
+	@if [ ! -f ~/.flux/GITHUB_TOKEN ]; then \
+		echo "Error: GITHUB_TOKEN not found! - See ./DeveloperEdition/README.md"; \
 		exit 1; \
-	fi; \
-	TEMP="$$HOME/tmp/testRepo/$$FILESPEC"; \
-	EXP="$(PWD)/.stage0_template/test_expected/$$FILESPEC"; \
-	if [ ! -f "$$TEMP" ]; then echo "Temp file not found: $$TEMP"; exit 1; fi; \
-	if [ ! -f "$$EXP" ]; then echo "Expected file not found: $$EXP"; exit 1; fi; \
-	diff "$$TEMP" "$$EXP"
+	fi
+	@cp ./DeveloperEdition/fx ~/.flux/fx && \
+	chmod +x ~/.flux/fx && \
+	cp ./DeveloperEdition/docker-compose.yaml ~/.flux/docker-compose.yaml && \
+	GITHUB_TOKEN=$$(cat ~/.flux/GITHUB_TOKEN) && \
+	echo "$$GITHUB_TOKEN" | docker login ghcr.io -u $(ORG) --password-stdin && \
+	echo "Docker login completed" && \
+	git config --global --unset-all url."https://@github.com/".insteadOf 2>/dev/null || true && \
+	git config --global url."https://x-access-token:$$GITHUB_TOKEN@github.com/".insteadOf "https://github.com/" && \
+	echo "Git URL configured" && \
+	echo "Updates completed"
 
-take:
-	@FILESPEC="$(firstword $(filter-out take,$(MAKECMDGOALS)))"; \
-	if [ -z "$$FILESPEC" ]; then \
-		echo "Usage: make take <filespec>  (e.g. make take DeveloperEdition/mh)"; \
-		exit 1; \
-	fi; \
-	TEMP="$$HOME/tmp/testRepo/$$FILESPEC"; \
-	EXP="$(PWD)/.stage0_template/test_expected/$$FILESPEC"; \
-	if [ ! -f "$$TEMP" ]; then echo "Temp file not found: $$TEMP"; exit 1; fi; \
-	cp "$$TEMP" "$$EXP"; \
-	echo "Updated $$EXP from $$TEMP"
+schemas:
+	@echo "Fetching JSON schemas for all data dictionaries..."
+	@mkdir -p ./Specifications/schemas
+	@yq -r '.data_dictionaries[].name' ./Specifications/catalog.yaml | \
+	while IFS= read -r name; do \
+		[ -z "$$name" ] && continue; \
+		echo "Fetching schema for $${name}"; \
+		curl -s "localhost:8180/api/configurations/json_schema/$${name}.yaml/0.1.0.0" > "./Specifications/schemas/$${name}.schema.json" \
+		|| echo "Warning: Failed to fetch schema for $${name}"; \
+	done
+	@echo "Schema fetching complete."
 
-%:
-	@:
+container:
+	@echo "Building Velocity Chain container..."
+	@DOCKER_BUILDKIT=0 docker build -t ghcr.io/velocity-chain/flux:latest .
+	@echo "Container built successfully: ghcr.io/velocity-chain/flux:latest"
+
+push:
+	@echo "Pushing Velocity Chain container..."
+	@docker push ghcr.io/velocity-chain/flux:latest
+	@echo "Container Pushed successfully: ghcr.io/velocity-chain/flux:latest"
+
+build-publish: container push
+
+build-package: container
+publish-package: push
+delete-package: gh api -X DELETE /orgs//packages/container/flux'
+
+launch-all:
+	@START=$$(date +%s); \
+	$(MAKE) build-package publish-package && $(MAKE) launch-services SERVICES="$(ALL_SERVICES)"; \
+	END=$$(date +%s); \
+	echo "Launch Completed - Started at $$START To $$END Duration: $$((END - START)) Seconds"
+
+launch-services:
+	@if [ -z "$(SERVICES)" ]; then echo "Error: SERVICES required. e.g. make launch-services SERVICES=profile"; exit 1; fi; \
+	[ -z "$${GITHUB_TOKEN:-}" ] && { echo "Error: GITHUB_TOKEN env required"; exit 1; }; \
+	echo "Configuring git and docker for push..."; \
+	echo "$$GITHUB_TOKEN" | docker login ghcr.io -u $(ORG) --password-stdin && \
+	git config --global --unset-all url."https://@github.com/".insteadOf 2>/dev/null || true && \
+	git config --global url."https://x-access-token:$$GITHUB_TOKEN@github.com/".insteadOf "https://github.com/" && \
+	for svc in $(SERVICES); do \
+		[ -z "$$svc" ] && continue; \
+		REPO_LINES=$$(yq -r '.architecture.domains[] | select(.name == "'$$svc'") | .repos[] | select(.type == "api" or .type == "spa") | (.name + "|" + .template + "|" + (.publish // ""))' $(ARCH_FILE) 2>/dev/null) || true; \
+		[ -z "$$REPO_LINES" ] && continue; \
+		echo "--- Domain: $$svc ---"; \
+		echo "$$REPO_LINES" | while IFS='|' read -r repo_name template publish; do \
+			[ -z "$$repo_name" ] && continue; \
+			REPO_FULL="$(SLUG)_$$repo_name"; \
+			REPO="$(ORG)/$$REPO_FULL"; \
+			echo "  Creating $$REPO from template $$template"; \
+			rm -rf "$(SOURCE)/$$REPO_FULL"; \
+			cd "$(SOURCE)" && gh repo create "$$REPO" --template "$$template" --public || { echo "Failed: $$REPO"; exit 1; }; \
+			echo "  Waiting for repo to be ready..."; sleep 5; \
+			echo "  Cloning $$REPO"; \
+			cd "$(SOURCE)" && git clone "https://x-access-token:$$GITHUB_TOKEN@github.com/$$REPO.git" "$$REPO_FULL" || { echo "Failed clone: $$REPO"; exit 1; }; \
+			echo "  Merging $$REPO_FULL"; \
+			cd "$(SOURCE)/$$REPO_FULL" && SERVICE_NAME=$$svc make merge "$(SPECS_DIR)" || { echo "Failed merge: $$REPO_FULL"; exit 1; }; \
+			if [ -n "$$publish" ]; then \
+				echo "  Build-package & publish-package $$REPO_FULL ($$publish)"; \
+				case "$$publish" in \
+					make)   make build-package && make publish-package ;; \
+					npm)    npm run build-package && npm run publish-package ;; \
+					pipenv) pipenv run build-package && pipenv run publish-package ;; \
+					*)      echo "Unknown publish: $$publish"; exit 1 ;; \
+				esac || { echo "Failed build: $$REPO_FULL"; exit 1; }; \
+			fi; \
+			echo "  Commit & push $$REPO_FULL"; \
+			git add -A && git commit -m "Template Merge Processing Complete" && git push origin main || { echo "Failed push: $$REPO_FULL"; exit 1; }; \
+			cd "$(MAKEFILE_DIR)" || true; \
+		done; \
+	done
+	@echo "Launch complete."
+
+# --- Clean command (DESTRUCTIVE - do not run automated tests) ---
+clean-clone-build:
+	@if [ -z "$(SERVICES)" ]; then echo "Error: SERVICES required. e.g. make clean-clone-build SERVICES=profile"; exit 1; fi; \
+	for svc in $(SERVICES); do \
+		[ -z "$$svc" ] && continue; \
+		REPO_LINES=$$(yq -r '.architecture.domains[] | select(.name == "'$$svc'") | .repos[] | select(.type == "api" or .type == "spa") | (.name + "|" + (.publish // ""))' $(ARCH_FILE) 2>/dev/null) || true; \
+		[ -z "$$REPO_LINES" ] && continue; \
+		echo "--- Domain: $$svc ---"; \
+		echo "$$REPO_LINES" | while IFS='|' read -r repo_name publish; do \
+			[ -z "$$repo_name" ] && continue; \
+			REPO_FULL="$(SLUG)_$$repo_name"; \
+			REPO="$(ORG)/$$REPO_FULL"; \
+			echo "  Clean $$REPO_FULL"; \
+			rm -rf "$(SOURCE)/$$REPO_FULL"; \
+			echo "  Clone $$REPO"; \
+			cd "$(SOURCE)" && git clone "https://github.com/$$REPO.git" "$$REPO_FULL" || { echo "Failed clone: $$REPO"; exit 1; }; \
+			echo "  Build $$REPO_FULL ($$publish)"; \
+			cd "$(SOURCE)/$$REPO_FULL" && ( \
+				case "$$publish" in \
+					make)   make build-package ;; \
+					npm)    npm run build-package ;; \
+					pipenv) pipenv run build-package ;; \
+					*)      echo "Skipped (no publish): $$REPO_FULL" ;; \
+				esac \
+			) || true; \
+			cd "$(MAKEFILE_DIR)" || true; \
+		done; \
+	done
+	@echo "Clean-clone-build complete."
+
+# --- Delete commands (DESTRUCTIVE - do not run automated tests) ---
+delete-all:
+	@START=$$(date +%s); \
+	$(MAKE) delete-services SERVICES="$(ALL_SERVICES)"; \
+	END=$$(date +%s); \
+	echo "Delete Completed - Started at $$START To $$END Duration: $$((END - START)) Seconds"
+
+delete-services:
+	@echo "WARNING: This will DELETE repos and packages. This action is NOT reversible."; \
+	read -p "Proceed? (y/n) " confirm && [ "$$confirm" = "y" ] || { echo "Aborted."; exit 1; }; \
+	for svc in $(SERVICES); do \
+		[ -z "$$svc" ] && continue; \
+		REPO_LINES=$$(yq -r '.architecture.domains[] | select(.name == "'$$svc'") | .repos[] | select(.type == "api" or .type == "spa") | (.name + "|" + (.publish // ""))' $(ARCH_FILE) 2>/dev/null) || true; \
+		[ -z "$$REPO_LINES" ] && continue; \
+		echo "--- Domain: $$svc ---"; \
+		echo "$$REPO_LINES" | while IFS='|' read -r repo_name publish; do \
+			[ -z "$$repo_name" ] && continue; \
+			REPO_FULL="$(SLUG)_$$repo_name"; \
+			REPO="$(ORG)/$$REPO_FULL"; \
+			if [ -d "$(SOURCE)/$$REPO_FULL" ] && [ -n "$$publish" ]; then \
+				echo "  Delete-package $$REPO_FULL ($$publish)"; \
+				cd "$(SOURCE)/$$REPO_FULL" && ( \
+					case "$$publish" in \
+						make)   make delete-package ;; \
+						npm)    npm run delete-package ;; \
+						pipenv) pipenv run delete-package ;; \
+						*)      ;; \
+					esac \
+				) 2>/dev/null || true; \
+			fi; \
+			echo "  Delete repo $$REPO"; \
+			gh repo delete "$$REPO" --yes 2>/dev/null || echo "  (repo may not exist)"; \
+			echo "  Clean $$REPO_FULL"; \
+			rm -rf "$(SOURCE)/$$REPO_FULL"; \
+			cd "$(MAKEFILE_DIR)" || true; \
+		done; \
+	done; \
+	echo "Delete complete."
