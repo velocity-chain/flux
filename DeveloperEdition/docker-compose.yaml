@@ -11,7 +11,18 @@ services:
       - all
       - runbook
       - mongodb
-      - sample
+      - operations-api
+      - operations
+      - planning-api
+      - planning
+      - suppliers-api
+      - suppliers
+      - inventory-api
+      - inventory
+      - analytics-api
+      - analytics
+      - integrations-api
+      - integrations
 
   ##################################
   # Custom Runbook API Service (Deployed Profile)
@@ -34,7 +45,7 @@ services:
       UI_HEADER: "Velocity Chain Packaged Runbooks"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ${MOUNT_DIR}:/execution 
+      - ${MOUNT_DIR}:/execution
     profiles:
       - all
       - runbook
@@ -57,9 +68,9 @@ services:
       - runbook
 
   ##################################
-  # Backing Services 
+  # Backing Services
   ##################################
-  # MongoDB backing service 
+  # MongoDB backing service
   mongodb:
     image: mongo:7.0.5
     ports:
@@ -76,8 +87,18 @@ services:
     profiles:
       - all
       - mongodb
-      - sample
-      - sample_api
+      - operations-api
+      - operations
+      - planning-api
+      - planning
+      - suppliers-api
+      - suppliers
+      - inventory-api
+      - inventory
+      - analytics-api
+      - analytics
+      - integrations-api
+      - integrations
 
   ##################################
   # Mongo Database Configuration Utilities
@@ -102,8 +123,18 @@ services:
     profiles:
       - all
       - mongodb
-      - sample
-      - sample_api
+      - operations-api
+      - operations
+      - planning-api
+      - planning
+      - suppliers-api
+      - suppliers
+      - inventory-api
+      - inventory
+      - analytics-api
+      - analytics
+      - integrations-api
+      - integrations
 
   mongodb_spa:
     image: ghcr.io/agile-learning-institute/mongodb_configurator_spa:latest
@@ -120,14 +151,24 @@ services:
     profiles:
       - all
       - mongodb
-      - sample
-      - sample_api
+      - operations-api
+      - operations
+      - planning-api
+      - planning
+      - suppliers-api
+      - suppliers
+      - inventory-api
+      - inventory
+      - analytics-api
+      - analytics
+      - integrations-api
+      - integrations
 
   ##################################
-  # Sample Microservice 
+  # Operations (Command Center)
   ##################################
-  sample_api:
-    image: ghcr.io/velocity-chain/flux_sample_api:latest
+  operations_api:
+    image: ghcr.io/velocity-chain/flux_operations_api:latest
     restart: no
     ports:
       - "127.0.0.1:8389:8389"
@@ -138,28 +179,227 @@ services:
       ENABLE_LOGIN: "true"
       LOGGING_LEVEL: "INFO"
       JWT_SECRET: ${JWT_SECRET}
-      SAMPLE_API_PORT: 8389
-      SAMPLE_SPA_PORT: 8390
+      API_PORT: 8389
     depends_on:
-      mongodb_api:
-        condition: service_started
+      mongodb:
+        condition: service_healthy
     profiles:
       - all
-      - sample
-      - sample_api
+      - operations-api
+      - operations
 
-  sample_spa:
-    image: ghcr.io/velocity-chain/flux_sample_spa:latest
+  operations_spa:
+    image: ghcr.io/velocity-chain/flux_operations_spa:latest
     restart: no
     ports:
       - "127.0.0.1:8390:80"
     environment:
-      API_HOST: sample_api
+      API_HOST: operations_api
       API_PORT: 8389
-      SPA_PORT: 8390
+      IDP_LOGIN_URI: ${IDP_LOGIN_URI:-http://localhost:8390/login}
     depends_on:
-      sample_api:
+      operations_api:
         condition: service_started
     profiles:
       - all
-      - sample
+      - operations
+
+  ##################################
+  # Planning
+  ##################################
+  planning_api:
+    image: ghcr.io/velocity-chain/flux_planning_api:latest
+    restart: no
+    ports:
+      - "127.0.0.1:8391:8391"
+    environment:
+      MONGO_CONNECTION_STRING: mongodb://mongodb:27017/
+      MONGODB_REQUIRE_TLS: False
+      MONGO_DB_NAME: velocity_chain
+      ENABLE_LOGIN: "true"
+      LOGGING_LEVEL: "INFO"
+      JWT_SECRET: ${JWT_SECRET}
+      API_PORT: 8391
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    profiles:
+      - all
+      - planning-api
+      - planning
+
+  planning_spa:
+    image: ghcr.io/velocity-chain/flux_planning_spa:latest
+    restart: no
+    ports:
+      - "127.0.0.1:8392:80"
+    environment:
+      API_HOST: planning_api
+      API_PORT: 8391
+      IDP_LOGIN_URI: ${IDP_LOGIN_URI:-http://localhost:8392/login}
+    depends_on:
+      planning_api:
+        condition: service_started
+    profiles:
+      - all
+      - planning
+
+  ##################################
+  # Suppliers
+  ##################################
+  suppliers_api:
+    image: ghcr.io/velocity-chain/flux_suppliers_api:latest
+    restart: no
+    ports:
+      - "127.0.0.1:8393:8393"
+    environment:
+      MONGO_CONNECTION_STRING: mongodb://mongodb:27017/
+      MONGODB_REQUIRE_TLS: False
+      MONGO_DB_NAME: velocity_chain
+      ENABLE_LOGIN: "true"
+      LOGGING_LEVEL: "INFO"
+      JWT_SECRET: ${JWT_SECRET}
+      API_PORT: 8393
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    profiles:
+      - all
+      - suppliers-api
+      - suppliers
+
+  suppliers_spa:
+    image: ghcr.io/velocity-chain/flux_suppliers_spa:latest
+    restart: no
+    ports:
+      - "127.0.0.1:8394:80"
+    environment:
+      API_HOST: suppliers_api
+      API_PORT: 8393
+      IDP_LOGIN_URI: ${IDP_LOGIN_URI:-http://localhost:8394/login}
+    depends_on:
+      suppliers_api:
+        condition: service_started
+    profiles:
+      - all
+      - suppliers
+
+  ##################################
+  # Inventory
+  ##################################
+  inventory_api:
+    image: ghcr.io/velocity-chain/flux_inventory_api:latest
+    restart: no
+    ports:
+      - "127.0.0.1:8395:8395"
+    environment:
+      MONGO_CONNECTION_STRING: mongodb://mongodb:27017/
+      MONGODB_REQUIRE_TLS: False
+      MONGO_DB_NAME: velocity_chain
+      ENABLE_LOGIN: "true"
+      LOGGING_LEVEL: "INFO"
+      JWT_SECRET: ${JWT_SECRET}
+      API_PORT: 8395
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    profiles:
+      - all
+      - inventory-api
+      - inventory
+
+  inventory_spa:
+    image: ghcr.io/velocity-chain/flux_inventory_spa:latest
+    restart: no
+    ports:
+      - "127.0.0.1:8396:80"
+    environment:
+      API_HOST: inventory_api
+      API_PORT: 8395
+      IDP_LOGIN_URI: ${IDP_LOGIN_URI:-http://localhost:8396/login}
+    depends_on:
+      inventory_api:
+        condition: service_started
+    profiles:
+      - all
+      - inventory
+
+  ##################################
+  # Analytics
+  ##################################
+  analytics_api:
+    image: ghcr.io/velocity-chain/flux_analytics_api:latest
+    restart: no
+    ports:
+      - "127.0.0.1:8397:8397"
+    environment:
+      MONGO_CONNECTION_STRING: mongodb://mongodb:27017/
+      MONGODB_REQUIRE_TLS: False
+      MONGO_DB_NAME: velocity_chain
+      ENABLE_LOGIN: "true"
+      LOGGING_LEVEL: "INFO"
+      JWT_SECRET: ${JWT_SECRET}
+      API_PORT: 8397
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    profiles:
+      - all
+      - analytics-api
+      - analytics
+
+  analytics_spa:
+    image: ghcr.io/velocity-chain/flux_analytics_spa:latest
+    restart: no
+    ports:
+      - "127.0.0.1:8398:80"
+    environment:
+      API_HOST: analytics_api
+      API_PORT: 8397
+      IDP_LOGIN_URI: ${IDP_LOGIN_URI:-http://localhost:8398/login}
+    depends_on:
+      analytics_api:
+        condition: service_started
+    profiles:
+      - all
+      - analytics
+
+  ##################################
+  # Integrations
+  ##################################
+  integrations_api:
+    image: ghcr.io/velocity-chain/flux_integrations_api:latest
+    restart: no
+    ports:
+      - "127.0.0.1:8399:8399"
+    environment:
+      MONGO_CONNECTION_STRING: mongodb://mongodb:27017/
+      MONGODB_REQUIRE_TLS: False
+      MONGO_DB_NAME: velocity_chain
+      ENABLE_LOGIN: "true"
+      LOGGING_LEVEL: "INFO"
+      JWT_SECRET: ${JWT_SECRET}
+      API_PORT: 8399
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    profiles:
+      - all
+      - integrations-api
+      - integrations
+
+  integrations_spa:
+    image: ghcr.io/velocity-chain/flux_integrations_spa:latest
+    restart: no
+    ports:
+      - "127.0.0.1:8400:80"
+    environment:
+      API_HOST: integrations_api
+      API_PORT: 8399
+      IDP_LOGIN_URI: ${IDP_LOGIN_URI:-http://localhost:8400/login}
+    depends_on:
+      integrations_api:
+        condition: service_started
+    profiles:
+      - all
+      - integrations

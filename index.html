@@ -117,15 +117,58 @@
         <p class="subtitle">Welcome to the Development Environment</p>
         <ul class="links">
             <li>
-                <a href="#" class="coming-soon">
-                    <span class="coming-soon-text">- Add new Services Here</span>
+                <a href="http://HOST_NAME:8400" id="integrations-link" target="_blank">
+                    Integrations
+                </a>
+                <a href="http://HOST_NAME:8399/docs/explorer.html" id="integrations-explorer-link" class="explorer-link" target="_blank" title="Open API Explorer">
+                    🔍 API Explorer
+                </a>
+            </li>
+            <li>
+                <a href="http://HOST_NAME:8398" id="analytics-link" target="_blank">
+                    Analytics
+                </a>
+                <a href="http://HOST_NAME:8397/docs/explorer.html" id="analytics-explorer-link" class="explorer-link" target="_blank" title="Open API Explorer">
+                    🔍 API Explorer
+                </a>
+            </li>
+            <li>
+                <a href="http://HOST_NAME:8396" id="inventory-link" target="_blank">
+                    Inventory
+                </a>
+                <a href="http://HOST_NAME:8395/docs/explorer.html" id="inventory-explorer-link" class="explorer-link" target="_blank" title="Open API Explorer">
+                    🔍 API Explorer
+                </a>
+            </li>
+            <li>
+                <a href="http://HOST_NAME:8394" id="suppliers-link" target="_blank">
+                    Suppliers
+                </a>
+                <a href="http://HOST_NAME:8393/docs/explorer.html" id="suppliers-explorer-link" class="explorer-link" target="_blank" title="Open API Explorer">
+                    🔍 API Explorer
+                </a>
+            </li>
+            <li>
+                <a href="http://HOST_NAME:8392" id="planning-link" target="_blank">
+                    Planning
+                </a>
+                <a href="http://HOST_NAME:8391/docs/explorer.html" id="planning-explorer-link" class="explorer-link" target="_blank" title="Open API Explorer">
+                    🔍 API Explorer
+                </a>
+            </li>
+            <li>
+                <a href="http://HOST_NAME:8390" id="operations-link" target="_blank">
+                    Operations
+                </a>
+                <a href="http://HOST_NAME:8389/docs/explorer.html" id="operations-explorer-link" class="explorer-link" target="_blank" title="Open API Explorer">
+                    🔍 API Explorer
                 </a>
             </li>
             <li>
                 <a href="http://HOST_NAME:8386" id="database-link" target="_blank">
                     Schema Configuration
                 </a>
-                <a href="http://HOST_NAME:8385/docs/index.html" id="database-explorer-link" class="explorer-link" target="_blank" title="Open API Explorer">
+                <a href="http://HOST_NAME:8385/docs/explorer.html" id="database-explorer-link" class="explorer-link" target="_blank" title="Open API Explorer">
                     🔍 API Explorer
                 </a>
             </li>
@@ -142,8 +185,20 @@
     <script>
         // Replace HOST_NAME with actual hostname or use window.location.hostname
         const hostname = window.location.hostname || 'localhost';
+        document.getElementById('integrations-link').href = `http://${hostname}:8400`;
+        document.getElementById('integrations-explorer-link').href = `http://${hostname}:8399/docs/explorer.html`;
+        document.getElementById('analytics-link').href = `http://${hostname}:8398`;
+        document.getElementById('analytics-explorer-link').href = `http://${hostname}:8397/docs/explorer.html`;
+        document.getElementById('inventory-link').href = `http://${hostname}:8396`;
+        document.getElementById('inventory-explorer-link').href = `http://${hostname}:8395/docs/explorer.html`;
+        document.getElementById('suppliers-link').href = `http://${hostname}:8394`;
+        document.getElementById('suppliers-explorer-link').href = `http://${hostname}:8393/docs/explorer.html`;
+        document.getElementById('planning-link').href = `http://${hostname}:8392`;
+        document.getElementById('planning-explorer-link').href = `http://${hostname}:8391/docs/explorer.html`;
+        document.getElementById('operations-link').href = `http://${hostname}:8390`;
+        document.getElementById('operations-explorer-link').href = `http://${hostname}:8389/docs/explorer.html`;
         document.getElementById('database-link').href = `http://${hostname}:8386`;
-        document.getElementById('database-explorer-link').href = `http://${hostname}:8385/docs/index.html`;
+        document.getElementById('database-explorer-link').href = `http://${hostname}:8385/docs/explorer.html`;
         document.getElementById('runbook-link').href = `http://${hostname}:8384/`;
         document.getElementById('runbook-explorer-link').href = `http://${hostname}:8383/docs/explorer.html`;
     </script>

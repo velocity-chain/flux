@@ -66,3 +66,16 @@ Before marking this task as completed:
 ## Implementation notes (to be updated by the agent)
 
 **Summary of changes**
+
+- **DeveloperEdition/docker-compose.yaml**
+  - Removed legacy `sample`, `sample_api`, and `sample_spa` services and all references to the sample profile.
+  - Added services for domains from `Specifications/architecture.yaml`: operations (8389/8390), planning (8391/8392), suppliers (8393/8394), inventory (8395/8396), analytics (8397/8398), integrations (8399/8400). Each domain has `{domain}_api` and `{domain}_spa` with ports and profiles `{domain}-api` and `{domain}`.
+  - Welcome service profiles updated to include all new profiles (operations-api, operations, planning-api, planning, suppliers-api, suppliers, inventory-api, inventory, analytics-api, analytics, integrations-api, integrations) so the welcome page starts with any profile.
+  - MongoDB, mongodb_api, and mongodb_spa profiles updated to include all new domain profiles; sample/sample_api removed.
+  - Each new API service has `API_PORT` and Mongo env; each new SPA has `IDP_LOGIN_URI` (e.g. `http://localhost:8390/login` for operations_spa). All new services are in the `all` profile.
+  - common_code domain not added (per task).
+- **index.html**
+  - Replaced placeholder “Add new Services Here” with links for each new SPA (Integrations 8400, Analytics 8398, Inventory 8396, Suppliers 8394, Planning 8392, Operations 8390), with new domains at the top of the list.
+  - Added an API Explorer link for each backing API at `/docs/explorer.html` (8399, 8397, 8395, 8393, 8391, 8389). Normalized Schema Configuration API Explorer to `/docs/explorer.html`.
+  - Script updated to set dynamic hostname for all new link IDs. Schema and runbook links unchanged except database explorer path.
+- **Packaging**: `make container` completed successfully.
