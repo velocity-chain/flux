@@ -24,7 +24,7 @@
             border-radius: 12px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             padding: 40px;
-            max-width: 600px;
+            max-width: 700px;
             width: 100%;
         }
         h1 {
@@ -41,13 +41,32 @@
             list-style: none;
         }
         .links li {
-            margin-bottom: 12px;
+            margin-bottom: 16px;
             display: flex;
-            align-items: center;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 4px;
+        }
+        .links li .service-row {
+            display: flex;
+            align-items: stretch;
             gap: 8px;
         }
-        .links a {
-            flex: 1;
+        .links li .spa-cell {
+            flex: 1 1 50%;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .links li .api-cell {
+            flex: 1 1 50%;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .service-row .cell-link {
             display: block;
             padding: 12px 20px;
             background: #f5f5f5;
@@ -57,17 +76,20 @@
             transition: all 0.2s;
             border-left: 4px solid #667eea;
         }
-        .links a:hover {
+        .spa-cell .cell-link {
+            flex: 1;
+        }
+        .service-row .cell-link:hover {
             background: #667eea;
             color: white;
             transform: translateX(4px);
         }
-        .links a.coming-soon {
+        .service-row .cell-link.coming-soon {
             opacity: 0.6;
             cursor: not-allowed;
             border-left-color: #ccc;
         }
-        .links a.coming-soon:hover {
+        .service-row .cell-link.coming-soon:hover {
             background: #f5f5f5;
             color: #333;
             transform: none;
@@ -77,37 +99,40 @@
             font-size: 0.9em;
             margin-left: 8px;
         }
-        .explorer-link {
-            flex: 0 0 auto;
+        .api-cell .cell-link.explorer-link {
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 6px;
             padding: 12px 16px;
             background: #f5f5f5;
-            border-radius: 6px;
-            text-decoration: none;
-            color: #667eea;
-            transition: all 0.2s;
             border: 2px solid #667eea;
+            border-left: 4px solid #667eea;
+            color: #667eea;
             font-size: 14px;
             white-space: nowrap;
         }
-        .explorer-link:hover {
+        .api-cell .cell-link.explorer-link:hover {
             background: #667eea;
             color: white;
-            transform: scale(1.1);
+            transform: scale(1.02);
         }
-        .explorer-link.coming-soon {
-            opacity: 0.3;
-            cursor: not-allowed;
-            border-color: #ccc;
-            color: #ccc;
+        .source-under {
+            font-size: 12px;
+            padding-left: 4px;
         }
-        .explorer-link.coming-soon:hover {
-            background: #f5f5f5;
-            color: #ccc;
-            transform: none;
+        .source-under a {
+            color: #3949ab;
+            text-decoration: none;
+            border-bottom: 1px solid #3949ab;
+        }
+        .source-under a:hover {
+            color: #1a237e;
+            border-bottom-color: #1a237e;
+        }
+        .source-under .utility-ref {
+            color: #666;
+            font-size: 11px;
         }
     </style>
 </head>
@@ -117,68 +142,164 @@
         <p class="subtitle">Welcome to the Development Environment</p>
         <ul class="links">
             <li>
-                <a href="http://HOST_NAME:8400" id="integrations-link" target="_blank">
-                    Integrations
-                </a>
-                <a href="http://HOST_NAME:8399/docs/explorer.html" id="integrations-explorer-link" class="explorer-link" target="_blank" title="Open API Explorer">
-                    🔍 API Explorer
-                </a>
+                <div class="service-row">
+                    <div class="spa-cell">
+                        <a href="http://HOST_NAME:8400" id="integrations-link" class="cell-link" target="_blank" rel="noopener">
+                            Integrations
+                        </a>
+                        <div class="source-under">
+                            <a href="https://github.com/velocity-chain/flux_integrations_spa" target="_blank" rel="noopener" title="Integrations SPA source">flux_integrations_spa</a>
+                        </div>
+                    </div>
+                    <div class="api-cell">
+                        <a href="http://HOST_NAME:8399/docs/explorer.html" id="integrations-explorer-link" class="cell-link explorer-link" target="_blank" rel="noopener" title="Open API Explorer">
+                            🔍 API Explorer
+                        </a>
+                        <div class="source-under">
+                            <a href="https://github.com/velocity-chain/flux_integrations_api" target="_blank" rel="noopener" title="Integrations API source">flux_integrations_api</a>
+                        </div>
+                    </div>
+                </div>
             </li>
             <li>
-                <a href="http://HOST_NAME:8398" id="analytics-link" target="_blank">
-                    Analytics
-                </a>
-                <a href="http://HOST_NAME:8397/docs/explorer.html" id="analytics-explorer-link" class="explorer-link" target="_blank" title="Open API Explorer">
-                    🔍 API Explorer
-                </a>
+                <div class="service-row">
+                    <div class="spa-cell">
+                        <a href="http://HOST_NAME:8398" id="analytics-link" class="cell-link" target="_blank" rel="noopener">
+                            Analytics
+                        </a>
+                        <div class="source-under">
+                            <a href="https://github.com/velocity-chain/flux_analytics_spa" target="_blank" rel="noopener" title="Analytics SPA source">flux_analytics_spa</a>
+                        </div>
+                    </div>
+                    <div class="api-cell">
+                        <a href="http://HOST_NAME:8397/docs/explorer.html" id="analytics-explorer-link" class="cell-link explorer-link" target="_blank" rel="noopener" title="Open API Explorer">
+                            🔍 API Explorer
+                        </a>
+                        <div class="source-under">
+                            <a href="https://github.com/velocity-chain/flux_analytics_api" target="_blank" rel="noopener" title="Analytics API source">flux_analytics_api</a>
+                        </div>
+                    </div>
+                </div>
             </li>
             <li>
-                <a href="http://HOST_NAME:8396" id="inventory-link" target="_blank">
-                    Inventory
-                </a>
-                <a href="http://HOST_NAME:8395/docs/explorer.html" id="inventory-explorer-link" class="explorer-link" target="_blank" title="Open API Explorer">
-                    🔍 API Explorer
-                </a>
+                <div class="service-row">
+                    <div class="spa-cell">
+                        <a href="http://HOST_NAME:8396" id="inventory-link" class="cell-link" target="_blank" rel="noopener">
+                            Inventory
+                        </a>
+                        <div class="source-under">
+                            <a href="https://github.com/velocity-chain/flux_inventory_spa" target="_blank" rel="noopener" title="Inventory SPA source">flux_inventory_spa</a>
+                        </div>
+                    </div>
+                    <div class="api-cell">
+                        <a href="http://HOST_NAME:8395/docs/explorer.html" id="inventory-explorer-link" class="cell-link explorer-link" target="_blank" rel="noopener" title="Open API Explorer">
+                            🔍 API Explorer
+                        </a>
+                        <div class="source-under">
+                            <a href="https://github.com/velocity-chain/flux_inventory_api" target="_blank" rel="noopener" title="Inventory API source">flux_inventory_api</a>
+                        </div>
+                    </div>
+                </div>
             </li>
             <li>
-                <a href="http://HOST_NAME:8394" id="suppliers-link" target="_blank">
-                    Suppliers
-                </a>
-                <a href="http://HOST_NAME:8393/docs/explorer.html" id="suppliers-explorer-link" class="explorer-link" target="_blank" title="Open API Explorer">
-                    🔍 API Explorer
-                </a>
+                <div class="service-row">
+                    <div class="spa-cell">
+                        <a href="http://HOST_NAME:8394" id="suppliers-link" class="cell-link" target="_blank" rel="noopener">
+                            Suppliers
+                        </a>
+                        <div class="source-under">
+                            <a href="https://github.com/velocity-chain/flux_suppliers_spa" target="_blank" rel="noopener" title="Suppliers SPA source">flux_suppliers_spa</a>
+                        </div>
+                    </div>
+                    <div class="api-cell">
+                        <a href="http://HOST_NAME:8393/docs/explorer.html" id="suppliers-explorer-link" class="cell-link explorer-link" target="_blank" rel="noopener" title="Open API Explorer">
+                            🔍 API Explorer
+                        </a>
+                        <div class="source-under">
+                            <a href="https://github.com/velocity-chain/flux_suppliers_api" target="_blank" rel="noopener" title="Suppliers API source">flux_suppliers_api</a>
+                        </div>
+                    </div>
+                </div>
             </li>
             <li>
-                <a href="http://HOST_NAME:8392" id="planning-link" target="_blank">
-                    Planning
-                </a>
-                <a href="http://HOST_NAME:8391/docs/explorer.html" id="planning-explorer-link" class="explorer-link" target="_blank" title="Open API Explorer">
-                    🔍 API Explorer
-                </a>
+                <div class="service-row">
+                    <div class="spa-cell">
+                        <a href="http://HOST_NAME:8392" id="planning-link" class="cell-link" target="_blank" rel="noopener">
+                            Planning
+                        </a>
+                        <div class="source-under">
+                            <a href="https://github.com/velocity-chain/flux_planning_spa" target="_blank" rel="noopener" title="Planning SPA source">flux_planning_spa</a>
+                        </div>
+                    </div>
+                    <div class="api-cell">
+                        <a href="http://HOST_NAME:8391/docs/explorer.html" id="planning-explorer-link" class="cell-link explorer-link" target="_blank" rel="noopener" title="Open API Explorer">
+                            🔍 API Explorer
+                        </a>
+                        <div class="source-under">
+                            <a href="https://github.com/velocity-chain/flux_planning_api" target="_blank" rel="noopener" title="Planning API source">flux_planning_api</a>
+                        </div>
+                    </div>
+                </div>
             </li>
             <li>
-                <a href="http://HOST_NAME:8390" id="operations-link" target="_blank">
-                    Operations
-                </a>
-                <a href="http://HOST_NAME:8389/docs/explorer.html" id="operations-explorer-link" class="explorer-link" target="_blank" title="Open API Explorer">
-                    🔍 API Explorer
-                </a>
+                <div class="service-row">
+                    <div class="spa-cell">
+                        <a href="http://HOST_NAME:8390" id="operations-link" class="cell-link" target="_blank" rel="noopener">
+                            Operations
+                        </a>
+                        <div class="source-under">
+                            <a href="https://github.com/velocity-chain/flux_operations_spa" target="_blank" rel="noopener" title="Operations SPA source">flux_operations_spa</a>
+                        </div>
+                    </div>
+                    <div class="api-cell">
+                        <a href="http://HOST_NAME:8389/docs/explorer.html" id="operations-explorer-link" class="cell-link explorer-link" target="_blank" rel="noopener" title="Open API Explorer">
+                            🔍 API Explorer
+                        </a>
+                        <div class="source-under">
+                            <a href="https://github.com/velocity-chain/flux_operations_api" target="_blank" rel="noopener" title="Operations API source">flux_operations_api</a>
+                        </div>
+                    </div>
+                </div>
             </li>
             <li>
-                <a href="http://HOST_NAME:8386" id="database-link" target="_blank">
-                    Schema Configuration
-                </a>
-                <a href="http://HOST_NAME:8385/docs/explorer.html" id="database-explorer-link" class="explorer-link" target="_blank" title="Open API Explorer">
-                    🔍 API Explorer
-                </a>
+                <div class="service-row">
+                    <div class="spa-cell">
+                        <a href="http://HOST_NAME:8386" id="database-link" class="cell-link" target="_blank" rel="noopener">
+                            Schema Configuration
+                        </a>
+                        <div class="source-under">
+                            <span class="utility-ref" title="Utility container, not a separate repo">mongodb_configurator_spa (utility)</span>
+                        </div>
+                    </div>
+                    <div class="api-cell">
+                        <a href="http://HOST_NAME:8385/docs/explorer.html" id="database-explorer-link" class="cell-link explorer-link" target="_blank" rel="noopener" title="Open API Explorer">
+                            🔍 API Explorer
+                        </a>
+                        <div class="source-under">
+                            <a href="https://github.com/velocity-chain/flux_mongodb_api" target="_blank" rel="noopener" title="Schema Configurator API source">flux_mongodb_api</a>
+                        </div>
+                    </div>
+                </div>
             </li>
             <li>
-                <a href="http://HOST_NAME:8384/" id="runbook-link" target="_blank">
-                    Runbook Automation
-                </a>
-                <a href="http://HOST_NAME:8383/docs/explorer.html" id="runbook-explorer-link" class="explorer-link" target="_blank" title="Open API Explorer">
-                    🔍 API Explorer
-                </a>
+                <div class="service-row">
+                    <div class="spa-cell">
+                        <a href="http://HOST_NAME:8384/" id="runbook-link" class="cell-link" target="_blank" rel="noopener">
+                            Runbook Automation
+                        </a>
+                        <div class="source-under">
+                            <span class="utility-ref" title="Stage0 utility container">stage0_runbook_spa (utility)</span>
+                        </div>
+                    </div>
+                    <div class="api-cell">
+                        <a href="http://HOST_NAME:8383/docs/explorer.html" id="runbook-explorer-link" class="cell-link explorer-link" target="_blank" rel="noopener" title="Open API Explorer">
+                            🔍 API Explorer
+                        </a>
+                        <div class="source-under">
+                            <a href="https://github.com/velocity-chain/flux_runbook_api" target="_blank" rel="noopener" title="Runbook API source">flux_runbook_api</a>
+                        </div>
+                    </div>
+                </div>
             </li>
         </ul>
     </div>
