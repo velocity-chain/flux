@@ -50,25 +50,154 @@ architecture:
           publish: npm
           type: spa
           port: 8388
-    - name: sample
-      description: Sample Service Domain - use for each User Journey domain.
+    - name: operations
+      description: Daily Operations Command Center - real-time visibility and exception management
       data_domains:
         controls:
-          - Control 
+          - Alert
+          - Warehouse
         creates:
-          - Create 
+          - Analytics
         consumes:
-          - Consume
+          - Inventory
+          - Shipment
+          - Demand
+          - Supplier
       repos:
-        - name: sample_api
-          description: Flask API with MongoDB Database
+        - name: operations_api
+          description: Operations Command Center API Server - real-time monitoring and alerts
           template: agile-learning-institute/stage0_template_flask_mongo
           publish: pipenv
           type: api
           port: 8389
-        - name: sample_spa
-          description: Vue Vuetify SPA
+        - name: operations_spa
+          description: Operations Command Center Dashboard - real-time supply chain visibility
           template: agile-learning-institute/stage0_template_vue_vuetify
           publish: npm
           type: spa
           port: 8390
+    - name: planning
+      description: Strategic Planning & Scenario Modeling - forecasting and optimization
+      data_domains:
+        controls:
+          - Scenario
+          - Demand
+        creates:
+          - Optimization
+        consumes:
+          - Organization
+          - Product
+          - Supplier
+          - Analytics
+      repos:
+        - name: planning_api
+          description: Strategic Planning API Server - scenario modeling and forecasting
+          template: agile-learning-institute/stage0_template_flask_mongo
+          publish: pipenv
+          type: api
+          port: 8391
+        - name: planning_spa
+          description: Strategic Planning SPA - scenario modeling and what-if analysis
+          template: agile-learning-institute/stage0_template_vue_vuetify
+          publish: npm
+          type: spa
+          port: 8392
+    - name: suppliers
+      description: Supplier Relationship & Risk Management - vendor performance and diversification
+      data_domains:
+        controls:
+          - Supplier
+        creates: []
+        consumes:
+          - Organization
+          - Product
+          - Alert
+          - Analytics
+      repos:
+        - name: suppliers_api
+          description: Supplier Management API Server - vendor relationships and risk assessment
+          template: agile-learning-institute/stage0_template_flask_mongo
+          publish: pipenv
+          type: api
+          port: 8393
+        - name: suppliers_spa
+          description: Supplier Management SPA - vendor scorecards and risk monitoring
+          template: agile-learning-institute/stage0_template_vue_vuetify
+          publish: npm
+          type: spa
+          port: 8394
+    - name: inventory
+      description: Inventory Management & Optimization - stock levels and warehouse operations
+      data_domains:
+        controls:
+          - Inventory
+          - Product
+        creates:
+          - Shipment
+        consumes:
+          - Demand
+          - Warehouse
+          - Optimization
+      repos:
+        - name: inventory_api
+          description: Inventory Management API Server - stock optimization and warehouse operations
+          template: agile-learning-institute/stage0_template_flask_mongo
+          publish: pipenv
+          type: api
+          port: 8395
+        - name: inventory_spa
+          description: Inventory Management SPA - stock levels and warehouse dashboards
+          template: agile-learning-institute/stage0_template_vue_vuetify
+          publish: npm
+          type: spa
+          port: 8396
+    - name: analytics
+      description: Cost Optimization & Business Intelligence - reports and financial analysis
+      data_domains:
+        controls:
+          - Analytics
+        creates: []
+        consumes:
+          - Organization
+          - Supplier
+          - Inventory
+          - Shipment
+          - Optimization
+      repos:
+        - name: analytics_api
+          description: Analytics API Server - business intelligence and cost optimization
+          template: agile-learning-institute/stage0_template_flask_mongo
+          publish: pipenv
+          type: api
+          port: 8397
+        - name: analytics_spa
+          description: Analytics Dashboard SPA - executive dashboards and financial reports
+          template: agile-learning-institute/stage0_template_vue_vuetify
+          publish: npm
+          type: spa
+          port: 8398
+    - name: integrations
+      description: External System Integrations - ERP, WMS, TMS, and third-party data sources
+      data_domains:
+        controls:
+          - Integration
+        creates:
+          - Inventory
+          - Shipment
+        consumes:
+          - Organization
+          - Supplier
+          - Product
+      repos:
+        - name: integrations_api
+          description: Integration API Server - external system connections and data sync
+          template: agile-learning-institute/stage0_template_flask_mongo
+          publish: pipenv
+          type: api
+          port: 8399
+        - name: integrations_spa
+          description: Integration Management SPA - system connections and data flow monitoring
+          template: agile-learning-institute/stage0_template_vue_vuetify
+          publish: npm
+          type: spa
+          port: 8400

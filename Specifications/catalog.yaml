@@ -1,11 +1,29 @@
 data_dictionaries:
   - name: Identity
-    description: The IdP Identity of a person who is a user of the system. 
+    description: The IdP Identity of a person who is a user of the system.
   - name: Profile
     description: User Preferences associated with one **Identity**.
-  - name: Control
-    description: A sample Control (CRUD) collection
-  - name: Create
-    description: A sample Create (Write Once, Read Many) collection
-  - name: Consume
-    description: A sample Consume (Read Only) collection
+  - name: Organization
+    description: Companies and business entities using the platform
+  - name: Supplier
+    description: Supplier companies, vendor information, performance metrics, and risk assessments
+  - name: Product
+    description: Products, SKUs, and items managed in the supply chain with specifications and attributes
+  - name: Inventory
+    description: Inventory levels, locations, movements, stock data, and warehouse assignments
+  - name: Demand
+    description: Demand forecasts, historical consumption patterns, and AI prediction models
+  - name: Shipment
+    description: Shipments, routes, logistics data, transportation modes, and delivery tracking
+  - name: Warehouse
+    description: Warehouse locations, capacity, operations, configurations, and performance metrics
+  - name: Alert
+    description: System alerts, notifications, escalations, crisis events, and response workflows
+  - name: Scenario
+    description: What-if scenarios, modeling results, strategic plans, and simulation outcomes
+  - name: Analytics
+    description: Reports, dashboards, KPIs, business intelligence data, and performance insights
+  - name: Integration
+    description: External system connections, data sources, API configurations, and sync status
+  - name: Optimization
+    description: AI optimization results, recommendations, cost savings, and efficiency improvements
